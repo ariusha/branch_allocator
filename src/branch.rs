@@ -1,7 +1,10 @@
 //! Branch-level operations to load and store atomics, and manipulate an unpacked view of the data.
 //! This module is not aware of the cursor module, or the crate root module.
+use crate::{
+    ENTRIES_PER_BRANCH, STEMS_PER_BRANCH,
+    target::{Atomic, Inner},
+};
 use core::sync::atomic::Ordering;
-use crate::{ENTRIES_PER_BRANCH, STEMS_PER_BRANCH, target::{Atomic, Inner}};
 pub(crate) struct Branch(Atomic);
 impl Branch {
     pub(crate) fn load(&self) -> (Inner, Data) {
@@ -88,16 +91,20 @@ impl Data {
         }
     }
     pub(crate) fn lower_locked(&self, index: usize) -> Option<bool> {
-        self.leaf_bits(index).map(|bits| (bits & Self::LOWER_LOCKED) != 0)
+        self.leaf_bits(index)
+            .map(|bits| (bits & Self::LOWER_LOCKED) != 0)
     }
     pub(crate) fn upper_locked(&self, index: usize) -> Option<bool> {
-        self.leaf_bits(index).map(|bits| (bits & Self::UPPER_LOCKED) != 0)
+        self.leaf_bits(index)
+            .map(|bits| (bits & Self::UPPER_LOCKED) != 0)
     }
     pub(crate) fn lower_coalescing(&self, index: usize) -> Option<bool> {
-        self.leaf_bits(index).map(|bits| (bits & Self::LOWER_COALESCING) != 0)
+        self.leaf_bits(index)
+            .map(|bits| (bits & Self::LOWER_COALESCING) != 0)
     }
     pub(crate) fn upper_coalescing(&self, index: usize) -> Option<bool> {
-        self.leaf_bits(index).map(|bits| (bits & Self::UPPER_COALESCING) != 0)
+        self.leaf_bits(index)
+            .map(|bits| (bits & Self::UPPER_COALESCING) != 0)
     }
     pub(crate) fn allocable(&self, index: usize) -> Option<bool> {
         if Self::stem_position(index).is_some() {
@@ -110,7 +117,11 @@ impl Data {
         if Self::stem_position(index).is_some() {
             self.set_stem(index, true)
         } else {
-            self.set_leaf(index, Self::LOCKED | Self::LOWER_LOCKED | Self::UPPER_LOCKED).unwrap()
+            self.set_leaf(
+                index,
+                Self::LOCKED | Self::LOWER_LOCKED | Self::UPPER_LOCKED,
+            )
+            .unwrap()
         }
     }
     pub(crate) fn unlock(&mut self, index: usize) {
@@ -121,28 +132,36 @@ impl Data {
         }
     }
     pub(crate) fn lock_lower(&mut self, index: usize) {
-        self.modify_leaf(index, |bit| bit | Self::LOWER_LOCKED).unwrap()
+        self.modify_leaf(index, |bit| bit | Self::LOWER_LOCKED)
+            .unwrap()
     }
     pub(crate) fn lock_upper(&mut self, index: usize) {
-        self.modify_leaf(index, |bit| bit | Self::UPPER_LOCKED).unwrap()
+        self.modify_leaf(index, |bit| bit | Self::UPPER_LOCKED)
+            .unwrap()
     }
     pub(crate) fn unlock_lower(&mut self, index: usize) {
-        self.modify_leaf(index, |bit| bit & !Self::LOWER_LOCKED).unwrap()
+        self.modify_leaf(index, |bit| bit & !Self::LOWER_LOCKED)
+            .unwrap()
     }
     pub(crate) fn unlock_upper(&mut self, index: usize) {
-        self.modify_leaf(index, |bit| bit & !Self::UPPER_LOCKED).unwrap()
+        self.modify_leaf(index, |bit| bit & !Self::UPPER_LOCKED)
+            .unwrap()
     }
     pub(crate) fn coalesce_lower(&mut self, index: usize) {
-        self.modify_leaf(index, |bit| bit | Self::LOWER_COALESCING).unwrap()
+        self.modify_leaf(index, |bit| bit | Self::LOWER_COALESCING)
+            .unwrap()
     }
     pub(crate) fn coalesce_upper(&mut self, index: usize) {
-        self.modify_leaf(index, |bit| bit | Self::UPPER_COALESCING).unwrap()
+        self.modify_leaf(index, |bit| bit | Self::UPPER_COALESCING)
+            .unwrap()
     }
     pub(crate) fn uncoalesce_lower(&mut self, index: usize) {
-        self.modify_leaf(index, |bit| bit & !Self::LOWER_COALESCING).unwrap()
+        self.modify_leaf(index, |bit| bit & !Self::LOWER_COALESCING)
+            .unwrap()
     }
     pub(crate) fn uncoalesce_upper(&mut self, index: usize) {
-        self.modify_leaf(index, |bit| bit & !Self::UPPER_COALESCING).unwrap()
+        self.modify_leaf(index, |bit| bit & !Self::UPPER_COALESCING)
+            .unwrap()
     }
     pub(crate) fn parent(&self, index: usize) -> Option<usize> {
         if index == 0 {

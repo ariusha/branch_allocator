@@ -4,17 +4,17 @@
 //! operations and compare-and-swap retry loops to allow allocation and deallocation using only
 //! shared references without internal locking. It does not depend on `std`, and uses `alloc` only for
 //! tests.
-//! 
+//!
 //! The allocator's performance is architecture-dependent, but will automatically select the largest
 //! word size that the target can compare-and-swap atomically.
-//! 
+//!
 //! # Algorithm
 //!
 //! Safe, concurrent allocation is achieved by attempting allocation and then undoing work if a
 //! conflict is found, repeating until a subsection of the tree is allocated atomically. This wastes
 //! work, but itself is no worse than spinning, except with the new advantage of allowing a core to
 //! safely preempt itself from an interrupt context without deadlocking.
-//! 
+//!
 //! The algorithm is heavily inspired by Andrea Scarselli's bunch allocator, detailed in their
 //! thesis "A Lock-Free Buddy System for Scalable Memory Allocation".
 //!
@@ -28,13 +28,9 @@ mod cursor;
 mod target;
 #[cfg(test)]
 mod test;
-use crate::{
-    branch::Branch,
-    cursor::Cursor,
-    target::{DEPTH},
-};
-use core::slice;
 pub use crate::target::Atomic;
+use crate::{branch::Branch, cursor::Cursor, target::DEPTH};
+use core::slice;
 const ENTRIES_PER_BRANCH: usize = (1 << (DEPTH + 1)) - 1;
 const LEAVES_PER_BRANCH: usize = 1 << DEPTH;
 const STEMS_PER_BRANCH: usize = (1 << DEPTH) - 1;
@@ -51,7 +47,7 @@ impl<'a> BranchAllocator<'a> {
     /// # Arguments
     /// * `order` - Count of layers in the allocator's internal tree. An `order`-ordered allocator
     /// can manage 2^`order` distinct blocks.
-    /// 
+    ///
     /// # Returns
     /// The length, in words (`branch_allocator::target::Atomic`, which may be any of `u8`, `u16`,
     /// `u32`, `u64`, or `u128`), of the slice that an `order`-ordered allocator requires to track its internal tree.
@@ -79,16 +75,16 @@ impl<'a> BranchAllocator<'a> {
     /// Create a new branch allocator. Fails if `storage` is not large enough to track an `order`-
     /// -ordered allocator. All blocks start as fully deallocated, and invalid regions should be
     /// allocated immediately to avoid allocating them later.
-    /// 
+    ///
     /// # Arguments
     /// * `storage` - Space to store the allocator's internal tree.
     /// * `order` - Count of layers in the allocator's internal tree. An `order`-ordered allocator
     /// can manage 2^`order` distinct blocks.
-    /// 
+    ///
     /// # Returns
     /// * `Some(Self)` - If `storage` is large enough to manage an area of the given order.
     /// * `None` - If it is not.
-    /// 
+    ///
     /// # Example
     /// ```
     /// use branch_allocator::{BranchAllocator, Atomic};
@@ -106,12 +102,8 @@ impl<'a> BranchAllocator<'a> {
         }
         // SAFETY: The branch slice is created in place of the provided storage, being the same size
         // or smaller, with alignment checked above.
-        let branches = unsafe {
-            slice::from_raw_parts(
-                storage.as_ptr() as *mut Branch,
-                storage.len(),
-            )
-        };
+        let branches =
+            unsafe { slice::from_raw_parts(storage.as_ptr() as *mut Branch, storage.len()) };
         for branch in branches {
             branch.zero();
         }
@@ -170,12 +162,12 @@ impl<'a> BranchAllocator<'a> {
         }
     }
     /// Attempt to allocate an `order`-ordered region containing the `index`'th block.
-    /// 
+    ///
     /// # Arguments
     /// * `index` - The index of the block within the managed area that the region must contain.
     /// * `order` - The order of the requested region. An `order`-ordered region is 2^`order`x
     /// larger than a block.
-    /// 
+    ///
     /// # Returns
     /// * `Some(())` - If the allocation succeeded.
     /// * `None` - If the requested region, or a subregion of it, is already allocated.
@@ -193,14 +185,14 @@ impl<'a> BranchAllocator<'a> {
         cursor.allocate()
     }
     /// Deallocate the previously-allocated region containg the `index`'th block.
-    /// 
+    ///
     /// # Arguments
     /// * `index` - The index of the block from which to walk up the tree to find the region. This
     /// is the same as the `index` used for
     /// `BranchAllocator::try_allocate`.
     /// * `order` - The order of the region to be deallocated. This is the same as the `order` used
     /// for `BranchAllocator::try_allocate`.
-    /// 
+    ///
     /// # Returns
     /// * `Some(())` - The region specified by `index` and `order` was found and verified as
     /// allocated, then successfully deallocated.

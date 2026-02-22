@@ -30,4 +30,4 @@ mod this {
     pub type Atomic = core::sync::atomic::AtomicU128;
     pub const DEPTH: usize = 4;
 }
-pub use this::{Atomic, Inner, DEPTH};
+pub use this::{Atomic, DEPTH, Inner};
