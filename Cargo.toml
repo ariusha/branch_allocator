@@ -1,8 +1,14 @@
 [package]
 name = "branch_allocator"
 version = "1.0.1"
-description = "A lock-free buddy allocator for `no_std`."
-license = "MIT OR Apache-2.0"
 edition = "2024"
+description = "A lock-free buddy allocator for `no_std`."
+documentation = "https://docs.rs/branch_allocator"
+readme = "README.md"
+repository = "https://github.com/ariusha/branch_allocator"
+resolver = "2"
+license = "MIT OR Apache-2.0"
+keywords = ["memory", "buddy", "lock-free", "allocator", "osdev"]
+categories = ["concurrency", "embedded", "memory-management", "no-std::no-alloc", "algorithms"]
 
 [dependencies]
