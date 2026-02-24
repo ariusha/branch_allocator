@@ -258,7 +258,7 @@ fn stress_random_ops() {
         x
     }
     thread::scope(|s| {
-        for _ in 0..4 {
+        for _ in 0..16 {
             let alloc_ref = &alloc;
             s.spawn(move || {
                 let mut rng = 123456789;
