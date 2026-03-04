@@ -24,6 +24,10 @@ non-preemptable context (interrupt; signal) without deadlocking.
 The algorithm is derived from Andrea Scarselli's bunch allocator, detailed in their thesis "A
 Lock-Free Buddy System for Scalable Memory Allocation".
 
+## AI Policy
+
+Use of generative AI is not restricted, but contributors will be held accountable for the quality of code submitted.
+
 ## License
 
 Licensed under either of:
